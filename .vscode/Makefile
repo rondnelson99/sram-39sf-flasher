@@ -30,7 +30,6 @@ RGBDS   :=
 RGBASM  := $(RGBDS)rgbasm
 RGBLINK := $(RGBDS)rgblink
 RGBFIX  := $(RGBDS)rgbfix
-RGBGFX  := $(RGBDS)rgbgfx
 
 ROM = $(BINDIR)/$(ROMNAME).$(ROMEXT)
 
@@ -58,14 +57,6 @@ include project.mk
 # This line causes assets not found in `res/` to be also looked for in `src/res/`
 # "Source" assets can thus be safely stored there without `make clean` removing them
 VPATH := $(SRCDIR)
-
-$(RESDIR)/%.1bpp: $(RESDIR)/%.png
-	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -d 1 -o $@ $<
-
-$(RESDIR)/%.2bpp: $(RESDIR)/%.png
-	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -o $@ $<
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
