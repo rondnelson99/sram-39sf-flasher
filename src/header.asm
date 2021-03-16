@@ -1,6 +1,5 @@
 INCLUDE "defines.asm"
 SECTION "Header", ROM0[$100]
-
 	; This is your ROM's entry point
 	; You have 4 bytes of code to do... something
 	di
@@ -38,98 +37,124 @@ ClearVRAM:
     or c
     jr nz,.clearVramByte
 
-CopyTileData:
-    ld hl,$9010;bg tile area, skipping the first tile because it should be blank
-    ld de, BorderTiles
-    ld c, BorderTilesEnd - BorderTiles
-.copyBorderTileByte
-    ld a, [de]
-    inc de
-    ld [hl+], a
-    ld [hl+], a
-    dec c
-    jr nz,.copyBorderTileByte
-    
-    dec de
-    ld c,2*8;2 tiles times 8 source bytes per tile
-.copyInvertedBorderTile
-    ld a, [de]
-    dec de
-    ld [hl+], a
-    ld [hl+], a
-    dec c
-    jr nz,.copyInvertedBorderTile
 
+    ; Register map for PB8 decompression
+	; HL: source address in boot ROM
+	; DE: destination address in VRAM
+	; A: Current literal value
+	; B: Repeat bits, terminated by 1000...
+	; C: Number of 8-byte blocks left in this block
+	; Source address in HL lets the repeat bits go straight to B,
+	; bypassing A and avoiding spilling registers to the stack.
 
+CopyTileDataPB8:
+    ld de,$9010;bg tile area, skipping the first tile because it should be blank
+    ld hl, FontTiles
+INCLUDE "res/font.1bpp.pb8.size"
+NB_PB8_BLOCKS_PART1 = NB_PB8_BLOCKS
+    PURGE NB_PB8_BLOCKS
+INCLUDE "res/bordertiles.1bpp.pb8.size"
+NB_PB8_BLOCKS_TOTAL = NB_PB8_BLOCKS + NB_PB8_BLOCKS_PART1
+    ld c, NB_PB8_BLOCKS_PART1 + NB_PB8_BLOCKS
+    PURGE NB_PB8_BLOCKS
+    .pb8BlockLoop
+	ld b, [hl]
+	inc hl
 
-ASSERT HIGH(BorderTilesEnd-9) == HIGH(SSTTiles)
-    ld e,LOW(SSTTiles)
-    ;hl still points where it needs to
-    ;copy 256 bytes, but c is already 0, so we're good here too
-ASSERT SSTTIlesEnd-SSTTiles == 256
-.copyLogoTileByte ;this is just memcpysmall
-    ld a,[de]
-    inc de
-    ld [hl+], a
-    dec c
-    jr nz,.copyLogoTileByte
+	; Shift a 1 into lower bit of shift value.  Once this bit
+	; reaches the carry, B becomes 0 and the byte is over
+	scf
+	rl b
 
-GenerateTileMap:
-    ld hl,$9800 + 32 ;start of second row
-    ld a,3;upper-left curve
-    ld [hl+], a
-    ld a, 1; horizontal line
-    ld c, (160/8)-2 ;tiles on screen minus corners
-.generateTileMapRow
-    ld [hl+], a
-    dec c
-    jr nz,.generateTileMapRow
-    ld a,4;upper-right curve
-    ld [hl],a
+.pb8BitLoop
+	; If not a repeat, load a literal byte
+	jr c,.pb8Repeat
+	ld a, [hli]
+.pb8Repeat
+	; Decompressed data uses colors 0 and 3, so write twice
+	ld [de], a
+	inc e ; inc de
+	ld [de], a
+	inc de
+	sla b
+	jr nz, .pb8BitLoop
 
-    lb bc,2,(144/8)-3;vertical line, repeat for the screen minus the top margin and horizontal lines
-.generateTileMapColumn
-    ld de,32 - (160/8) + 1  ;difference fot hl to get to the start of the next line
-    add hl,de
-    ld [hl],b
-    ld e,(160/8)-1 ;diffetence for hl to get to the end of the current line
-    add hl,de
-    ld [hl],b
-    dec c
-    jr nz, .generateTileMapColumn
+	dec c
+	jr nz, .pb8BlockLoop
 
-    ld e,32 - (160/8) + 1
-    add hl, de
-
-    ld a,6;lower-left curve
-    ld [hl+], a
-    ld a, 1; horizontal line
-    ld c, (160/8)-2 ;tiles on screen minus corners
-.generateTileMapRowBottom
-    ld [hl+], a
-    dec c
-    jr nz,.generateTileMapRowBottom
-    ld a,5;upper-right curve
-    ld [hl+],a
-
-GenerateSSTTileMap:
-    ld hl, $9802;put the logo near the upper-left corner
-    ld a, 7;the first tile of the logo
-    ld b, 4;three rows
-    ld e, 32-4 ;difference between end of one row and start of the next
-.writeSSTMapRow
-    ld c, 4;four tiles per row
-.writeSSTMapByte
-    ld [hl+], a
-    inc a
-    dec c
-    jr nz,.writeSSTMapByte
-    add hl, de
-    dec b
-    jr nz,.writeSSTMapRow
     ld b,b
-
+    ; Register map for PB16 decompression
+	; HL: source address in boot ROM
+	; DE: destination address in VRAM
+	; A: Current literal value
+	; B: Repeat bits, terminated by 1000...
+	; C: Number of 8-byte blocks left in this block
+	; Source address in HL lets the repeat bits go straight to B,
+	; bypassing A and avoiding spilling registers to the stack.
+CopyTileDataPB16: ;This is just the logo for now.
+INCLUDE "res/sstlogo.2bpp.pb16.size"
+    ld b, NB_PB16_BLOCKS * 2; the script was made for copying 2 bytes at a time, but I only do 1.
+    PURGE NB_PB16_BLOCKS
+    ;hl and de still point where they need to
+    ; Prefill temp storage with zeroes
+    xor a
+    ldh [pb16_byte0],a
+    ld c,a
+.packetloop:
+    push bc
     
+.pb16_unpack_packet:
+    ; Read first bit of control byte.  Treat B as a ring counter with
+    ; a 1 bit as the sentinel.  Once the 1 bit reaches carry, B will
+    ; become 0, meaning the 8-byte packet is complete.
+    ld a,[hl+]
+    scf
+    rla
+    ld b,a
+.byteloop:
+    ; If the bit from the control byte is clear, plane 0 is is literal
+    jr nc,.p0_is_literal
+    ldh a,[pb16_byte0]
+    jr .have_p0
+.p0_is_literal:
+    ld a,[hl+]
+    ldh [pb16_byte0],a
+.have_p0:
+    ld [de],a
+    inc e;this'll be aligned if we're copying to VRAM
+  
+    ; Read next bit.  If it's clear, plane 1 is is literal.
+    ld a,c
+    sla b
+    jr c,.have_p1
+.p1_is_copy:
+    ld a,[hl+]
+    ld c,a
+.have_p1:
+    ld [de],a
+    inc de
+  
+    ; Read next bit of control byte
+    sla b
+    jr nz,.byteloop
+
+    ld a,c
+    pop bc
+    ld c,a
+    dec b
+    jr nz,.packetloop
+    
+DecompressTilemap:
+    ;hl is still where it needs to be
+    ld de, $9800
+INCLUDE "res/main.tilemap.pb8.size"
+    ld c, NB_PB8_BLOCKS 
+    PURGE NB_PB8_BLOCKS
+    call UnPB8
+    
+
+
+
 
  
 
@@ -148,12 +173,49 @@ GenerateSSTTileMap:
 .lockup
     jr .lockup
 
+ 
+UnPB8:
+.pb8BlockLoop
+    ;unpack c blocks from hl to de. 8 byte blocks
+	ld b, [hl]
+	inc hl
+
+	; Shift a 1 into lower bit of shift value.  Once this bit
+	; reaches the carry, B becomes 0 and the byte is over
+	scf
+	rl b
+
+.pb8BitLoop
+	; If not a repeat, load a literal byte
+	jr c,.pb8Repeat
+	ld a, [hli]
+.pb8Repeat
+	; Decompressed data uses colors 0 and 3, so write twice
+	ld [de], a
+	inc de ; inc de
+	sla b
+	jr nz, .pb8BitLoop
+
+	dec c
+	jr nz, .pb8BlockLoop
+    ret
 
 
+FontTiles:
+INCBIN "res/font.1bpp.pb8"
+FontTilesEnd:
 BorderTiles:
-INCBIN "res/bordertiles.1bpp"
+INCBIN "res/bordertiles.1bpp.pb8"
 BorderTilesEnd:
 
 SSTTiles:
-INCBIN "res/sstlogo.2bpp"
+INCBIN "res/sstlogo.2bpp.pb16"
 SSTTIlesEnd:
+Tilemap:
+INCBIN "res/main.tilemap.pb8"
+TilemapEnd:
+
+section "pb16 temp byte", HRAM
+
+pb16_byte0: db
+    
