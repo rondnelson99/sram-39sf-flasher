@@ -174,6 +174,9 @@ WaitVblank:
     xor a
     ldh [rIF],a ;IF needs to be manually cleared after a 'di halt'
     call Handle_Vblank
+    ldh a,[hPressedKeys]
+    rrca;rotate bit 0 (a button) into carry
+    call c,FlashBootstrapRom
     jr WaitVblank
  
 
