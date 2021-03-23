@@ -48,6 +48,9 @@ ENDR
 	ld a, b
 	ldh [hHeldKeys], a
 
+	xor a
+    ldh [rIF],a ;IF needs to be manually cleared after a 'di halt'
+
     ret
 ENDL
 SECTION "VBlank HRAM", HRAM
