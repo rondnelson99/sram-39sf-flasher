@@ -92,11 +92,12 @@ $(RESDIR)/%.pb8.size: $(RESDIR)/%
 	@$(MKDIR_P) $(@D)
 	$(call filesize,$<,8) > $(RESDIR)/$*.pb8.size
 
-#this is for using rgbds to make little binary files to be compressed
-$(RESDIR)/%.asmbin: $(RESDIR)/%.asm
+#this is for using rgbds to make little roms which will be incbin'd into another rom
+$(RESDIR)/%.gb: $(RESDIR)/%.asm
 	@$(MKDIR_P) $(@D)
 	$(RGBASM)  -o $(RESDIR)/$*.o $<
-	$(RGBLINK)  -x -o $(RESDIR)/$*.asmbin $(RESDIR)/$*.o
+	$(RGBLINK)  -x -o $@ $(RESDIR)/$*.o
+	$(RGBFIX)	-f lhg -i "BOOT" -j -k "RN" -m 0x09 -r 0x02 -t "FLASH BOOTSTRAP" $@
 ###############################################
 #                                             #
 #                 COMPILATION                 #
@@ -125,9 +126,7 @@ rebuild:
 # How to build a ROM
 $(BINDIR)/%.$(ROMEXT) $(BINDIR)/%.sym $(BINDIR)/%.map: $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(SRCS))
 	@$(MKDIR_P) $(@D)
-	$(RGBASM) $(ASFLAGS) -o $(OBJDIR)/build_date.o $(SRCDIR)/res/build_date.asm
-	$(RGBLINK) $(LDFLAGS) -d -m $(BINDIR)/$*.map -n $(BINDIR)/$*.sym -o $(BINDIR)/$*.$(ROMEXT) $^ $(OBJDIR)/build_date.o \
-	&& $(RGBFIX) -v $(FIXFLAGS) $(BINDIR)/$*.$(ROMEXT)
+	$(RGBLINK) $(LDFLAGS) -m $(BINDIR)/$*.map -n $(BINDIR)/$*.sym -o $(BINDIR)/$*.$(ROMEXT) $^  \
 
 # `.mk` files are auto-generated dependency lists of the "root" ASM files, to save a lot of hassle.
 # Also add all obj dependencies to the dep file too, so Make knows to remake it

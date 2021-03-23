@@ -1,5 +1,6 @@
 INCLUDE "defines.asm"
-SECTION "Vblank",ROM0
+SECTION "VblankRom",ROM0
+LOAD "Vblank",SRAM
 Handle_Vblank::
 	ld c, LOW(rP1)
 	ld a, $20 ; Select D-pad
@@ -48,7 +49,7 @@ ENDR
 	ldh [hHeldKeys], a
 
     ret
-
+ENDL
 SECTION "VBlank HRAM", HRAM
     ; Keys that are currently being held, and that became held just this frame, respectively.
     ; Each bit represents a button, with that bit set == button pressed

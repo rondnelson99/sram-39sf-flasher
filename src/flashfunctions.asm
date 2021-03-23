@@ -1,4 +1,5 @@
-SECTION "Chip-erase",ROM0
+SECTION "Flash Functions ROM",ROM0
+LOAD "Flash Functions",SRAM
 ChipErase::;send the chip-erase command sequence
     ld hl,$5555 ;chip-erase command sequence
     ld de,$2AAA
@@ -24,3 +25,4 @@ ChipErase::;send the chip-erase command sequence
     ; if the timeout has triggered, fall through
     halt ;wait for vBlank
     ld b,b
+ENDL

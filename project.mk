@@ -35,7 +35,7 @@ SRAMSIZE := 0x00
 
 # ROM name
 ROMNAME := boilerplate
-ROMEXT  := gb
+ROMEXT  := sav
 
 
 # Compilation parameters, uncomment to apply, comment to cancel
@@ -57,8 +57,8 @@ ASFLAGS += -h
 # FIXFLAGS += -s
 
 # Game Boy mode
-# LDFLAGS += -d
-
+LDFLAGS += -d
+LDFLAGS += -x
 # No banked WRAM mode
 # LDFLAGS += -w
 
