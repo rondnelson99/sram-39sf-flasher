@@ -1,5 +1,5 @@
-SECTION "MemUtils ROM",ROM0
-LOAD "Memutils",SRAM
+SECTION FRAGMENT "ROM CODE",ROM0
+LOAD FRAGMENT "RAM CODE",SRAM
 Strcpy:: ;copy an FF-terminated string from de to hl
     ld a, [de]
     inc de

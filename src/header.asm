@@ -90,7 +90,7 @@ INCLUDE "res/sstlogo.2bpp.pb16.size"
     ;hl and de still point where they need to
     ; Prefill temp storage with zeroes
     xor a
-    ldh [pb16_byte0],a
+    ldh [hBackupA],a
     ld c,a
 .packetloop:
     push bc
@@ -106,11 +106,11 @@ INCLUDE "res/sstlogo.2bpp.pb16.size"
 .byteloop:
     ; If the bit from the control byte is clear, plane 0 is is literal
     jr nc,.p0_is_literal
-    ldh a,[pb16_byte0]
+    ldh a,[hBackupA]
     jr .have_p0
 .p0_is_literal:
     ld a,[hl+]
-    ldh [pb16_byte0],a
+    ldh [hBackupA],a
 .have_p0:
     ld [de],a
     inc e;this'll be aligned if we're copying to VRAM
@@ -143,7 +143,6 @@ INCLUDE "res/main.tilemap.pb8.size"
     ld c, NB_PB8_BLOCKS 
     PURGE NB_PB8_BLOCKS
     call UnPB8
-    
     ld a, %00000001;vblank interrupt only
     ldh [rIE],a
 
@@ -183,9 +182,9 @@ Tilemap:
 INCBIN "res/main.tilemap.pb8"
 TilemapEnd:
 ENDL
-SECTION "pb16 temp byte", HRAM
+SECTION "HRAM misc vars", HRAM
 
-pb16_byte0: db
+hBackupA: db
 
 SECTION "Stack", WRAM0[$E000 - STACK_SIZE]
 

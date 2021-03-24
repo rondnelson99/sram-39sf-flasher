@@ -1,6 +1,6 @@
 INCLUDE "defines.asm"
-SECTION "VblankRom",ROM0
-LOAD "Vblank",SRAM
+SECTION FRAGMENT "ROM CODE",ROM0
+LOAD FRAGMENT "RAM CODE",SRAM
 Handle_Vblank::
 	ld c, LOW(rP1)
 	ld a, $20 ; Select D-pad
@@ -14,12 +14,12 @@ ENDR
 	; Filter impossible D-pad combinations
 	and $0C ; Filter only Down and Up
 	ld a, b
-	jr nz, .notUpAndDown
+	jp nz, .notUpAndDown
 	or $0C ; If both are pressed, "unpress" them
 	ld b, a
 .notUpAndDown
 	and $03 ; Filter only Left and Right
-	jr nz, .notLeftAndRight
+	jp nz, .notLeftAndRight
 	; If both are pressed, "unpress" them
 	inc b;this will set the bottom 2 bits of B if they were 0.
 	inc b

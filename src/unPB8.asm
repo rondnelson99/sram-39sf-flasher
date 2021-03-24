@@ -1,5 +1,5 @@
-SECTION "UnPB8rom",ROM0
-LOAD  "UnPB8",SRAM
+SECTION FRAGMENT "ROM CODE",ROM0
+LOAD FRAGMENT "RAM CODE",SRAM
 UnPB8::
 .pb8BlockLoop
     ;unpack c blocks from hl to de. 8 byte blocks

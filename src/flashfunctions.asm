@@ -1,6 +1,6 @@
 INCLUDE "defines.asm"
-SECTION "Flash Functions ROM",ROM0
-LOAD "Flash Functions",SRAM
+SECTION FRAGMENT "ROM CODE",ROM0
+LOAD FRAGMENT "RAM CODE",SRAM
 ChipErase::;send the chip-erase command sequence
     ld hl,$5555 ;chip-erase command sequence
     ld de,$2AAA
@@ -35,4 +35,30 @@ ChipErase::;send the chip-erase command sequence
     ret;return to the main loop
 .eraseFailedString
     db "ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
+
+FlashByteProgram::;write a to the flash, but don't do anything fancy like checking if it worked.
+    ld b,a;we need a to send the command sequence so back it up at the expense of destroying b.
+    
+    ld a,$AA;18 cycles, 15 bytes
+    ld [$5555],a
+    ld a,$55
+    ld [$2AAA],a
+    ld a, $A0
+    ld [$5555],a;send the command seuence
+
+    ld a,b
+    ld [hl+], a;and do the write
+    ret
+
+InitProgressBar::
+    ld de, $99C2 ;left edge of progress bar
+    ld hl, .progressBarMap
+INCLUDE "res/progressbar.tilemap.pb8.size"
+    ld c, NB_PB8_BLOCKS 
+PURGE NB_PB8_BLOCKS
+    call UnPB8
+    ret
+
+.progressBarMap
+INCBIN "res/progressbar.tilemap.pb8"
 ENDL
