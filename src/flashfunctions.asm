@@ -24,10 +24,8 @@ ChipErase::;send the chip-erase command sequence
     or d
     jr nz, .checkEraseCompletion
     ; if the timeout has triggered, fall through
-    xor a
-    ldh [rIF],a ;zero interrupt requests before halt to wait for the next Vblank
-    halt ;wait for vBlank
-    call Handle_Vblank
+    
+    call Wait_Vblank
     ld hl,$9984 ;above the progress bar, one char to the right to make it centered
     ld de,.eraseFailedString
     call Strcpy
@@ -50,15 +48,5 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
     ld [hl+], a;and do the write
     ret
 
-InitProgressBar::
-    ld de, $99C2 ;left edge of progress bar
-    ld hl, .progressBarMap
-INCLUDE "res/progressbar.tilemap.pb8.size"
-    ld c, NB_PB8_BLOCKS 
-PURGE NB_PB8_BLOCKS
-    call UnPB8
-    ret
 
-.progressBarMap
-INCBIN "res/progressbar.tilemap.pb8"
 ENDL

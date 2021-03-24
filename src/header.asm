@@ -157,13 +157,12 @@ INCLUDE "res/main.tilemap.pb8.size"
     ld a, %10000001
     ld [rLCDC], a
 
-WaitVblank:
-    halt ;interrupts are disabled, so wait for Vblank
-    call Handle_Vblank
+Wait:
+    call Wait_Vblank
     ldh a,[hPressedKeys]
     rrca;rotate bit 0 (a button) into carry
     call c,FlashBootstrapRom
-    jr WaitVblank
+    jr Wait
 
 
 

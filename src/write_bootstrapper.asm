@@ -3,9 +3,16 @@ SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
 FlashBootstrapRom::;it should still be Vblank when this gets called
     call InitProgressBar
+    ld hl, $9983
+    ld de,.programString
+    call Strcpy
 
     call ChipErase
     
+    
+    call Wait_Vblank
+
+
     ld de, BootstrapRom
     ld hl, $100 ;area to be flashed
     ld c, BootstrapRomEnd-BootstrapRom
@@ -22,10 +29,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     jr nz, .checkprogramloop
     ;fall through if b runs out
     
-    xor a
-    ldh [rIF],a ;zero interrupt requests before halt to wait for the next Vblank
-    halt ;wait for vBlank
-    call Handle_Vblank
+    call Wait_Vblank
     
     ld hl,$9983 ;above the progress bar
     ld de,.programFailedString
@@ -37,6 +41,8 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     jr nz,.flashBootstrapRomByte
 
     ret
+.programString
+    db " PROGRAMMING  ",$FF;include spaces to cover the whole area
 
 .programFailedString
     db "PROGRAM FAILED",$FF

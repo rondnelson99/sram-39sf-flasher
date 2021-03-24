@@ -1,6 +1,11 @@
 INCLUDE "defines.asm"
 SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
+Wait_Vblank::
+	xor a
+    ldh [rIF],a ;wait for Vblank to update the progress bar
+    halt
+
 Handle_Vblank::
 	ld c, LOW(rP1)
 	ld a, $20 ; Select D-pad
