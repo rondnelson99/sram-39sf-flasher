@@ -136,7 +136,7 @@ INCLUDE "res/sstlogo.2bpp.pb16.size"
     dec b
     jr nz,.packetloop
     
-DecompressTilemap:
+DecompressTilemap::
     ;hl is still where it needs to be
     ld de, $9800
 INCLUDE "res/main.tilemap.pb8.size"
@@ -158,7 +158,7 @@ INCLUDE "res/main.tilemap.pb8.size"
     ld [rLCDC], a
 
 Wait:
-    call Wait_Vblank
+    call WaitAndHandleVblank
     ldh a,[hPressedKeys]
     rrca;rotate bit 0 (a button) into carry
     call c,FlashBootstrapRom
@@ -177,7 +177,7 @@ BorderTilesEnd:
 SSTTiles:
 INCBIN "res/sstlogo.2bpp.pb16"
 SSTTIlesEnd:
-Tilemap:
+MainTilemap::
 INCBIN "res/main.tilemap.pb8"
 TilemapEnd:
 ENDL

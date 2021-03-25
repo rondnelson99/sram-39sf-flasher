@@ -6,11 +6,11 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     call InitProgressBar
     ld de,.programString
     call StrcpyAboveProgressBar
-
+    ld b,b
     call ChipErase
 
-    call Wait_Vblank
-    ld a, $3D ;tile number for filled in proress bar
+    call WaitAndHandleVblank
+    ld a, $3E ;tile number for filled in proress bar
     ld [$99C3],a;fill in the first bit of the bar to show that the erase has completed
 
     ld de, BootstrapRom
@@ -29,7 +29,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     jr nz, .checkprogramloop
     ;fall through if b runs out
     
-    call Wait_Vblank
+    call WaitAndHandleVblank
     
     ld de,.programFailedString
     call StrcpyAboveProgressBar
@@ -40,14 +40,16 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     dec c
     jr nz,.flashBootstrapRomByte
     ;if we make it here then we're done programming, but first let's update the progress bar.
-    call Wait_Vblank
-    ld a, $3D ;tile index of the filled bar
+    call WaitAndHandleVblank
+    ld a, $3E ;tile index of the filled bar
     ld hl, $99C3; start of the bar
     ld c, $99D1 - $99C3 ;length of the bar
     MemsetSmall
     ld de, .programDoneString
     call StrcpyAboveProgressBar
-    ret
+    
+    jp ResetTilemapAfterButtonPress
+    ;that function rets for us, so we don't have to.
 
 .programDoneString
     db " PROGRAM DONE",$FF

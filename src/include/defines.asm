@@ -2,7 +2,7 @@ INCLUDE "hardware.inc/hardware.inc"
 ; `ld b, X` followed by `ld c, Y` is wasteful (same with other reg pairs).
 ; This writes to both halves of the pair at once, without sacrificing readability
 ; Example usage: `lb bc, X, Y`
-CHARS equs " 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+CHARS equs " 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ:"
 CHAR = 0
 REPT STRLEN("{CHARS}")
 	charmap STRSUB("{CHARS}", CHAR + 1, 1), CHAR

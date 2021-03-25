@@ -25,7 +25,7 @@ ChipErase::;send the chip-erase command sequence
     jr nz, .checkEraseCompletion
     ; if the timeout has triggered, fall through
     
-    call Wait_Vblank
+    call WaitAndHandleVblank
 
     ld de,.eraseFailedString
     call StrcpyAboveProgressBar

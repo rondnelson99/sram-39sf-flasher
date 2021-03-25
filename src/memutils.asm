@@ -1,5 +1,17 @@
 SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
+Multiple_Strcpy::;copy C destination prefixed strings from de
+    ld a, [de]
+    inc de
+    ld l, a
+    ld a, [de]
+    inc de
+    ld h, a
+    call Strcpy
+    dec c
+    jr nz, Multiple_Strcpy
+    ret
+
 StrcpyAboveProgressBar::
     ld hl,$9983 ;above the progress bar
 Strcpy:: ;copy an FF-terminated string from de to hl

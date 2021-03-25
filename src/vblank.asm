@@ -1,7 +1,13 @@
 INCLUDE "defines.asm"
 SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
-Wait_Vblank::
+WaitVblank::
+	xor a
+    ldh [rIF],a ;wait for Vblank to update the progress bar
+    halt
+	ret
+
+WaitAndHandleVblank::
 	xor a
     ldh [rIF],a ;wait for Vblank to update the progress bar
     halt
