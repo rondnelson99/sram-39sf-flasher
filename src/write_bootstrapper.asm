@@ -6,7 +6,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     call InitProgressBar
     ld de,.programString
     call StrcpyAboveProgressBar
-    ld b,b
+
     call ChipErase
 
     call WaitAndHandleVblank
@@ -33,7 +33,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     
     ld de,.programFailedString
     call StrcpyAboveProgressBar
-    ret
+    jp ResetTilemapAfterButtonPress
 
 .doneByte
     inc hl

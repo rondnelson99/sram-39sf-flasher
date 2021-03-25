@@ -35,7 +35,6 @@ ClearLowerScreen::
 
 ResetTilemapAfterButtonPress::
     call WaitAndHandleVblank
-    ld b,b
     ldh a, [hPressedKeys]
     or a;is it 0? have any keys been pressed?
     jr z, ResetTilemapAfterButtonPress;if not, wait for next time

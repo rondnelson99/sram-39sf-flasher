@@ -159,9 +159,11 @@ INCLUDE "res/main.tilemap.pb8.size"
 
 Wait:
     call WaitAndHandleVblank
+
     ldh a,[hPressedKeys]
-    rrca;rotate bit 0 (a button) into carry
-    call c,FlashBootstrapRom
+    bit 2,a;select button
+    call nz,FlashBootstrapRom
+    
     jr Wait
 
 
