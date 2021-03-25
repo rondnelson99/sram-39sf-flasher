@@ -8,10 +8,10 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     call Strcpy
 
     call ChipErase
-    
-    
-    call Wait_Vblank
 
+    call Wait_Vblank
+    ld a, $3D ;tile number for filled in proress bar
+    ld [$99C3],a;fill in the first bit of the bar to show that the erase has completed
 
     ld de, BootstrapRom
     ld hl, $100 ;area to be flashed
@@ -24,7 +24,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld b, 3;give it a little time to fully program
 .checkprogramloop
     cp [hl]
-    jp z,.done
+    jp z,.doneByte
     dec b
     jr nz, .checkprogramloop
     ;fall through if b runs out
@@ -36,7 +36,8 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     call Strcpy
     ret
 
-.done
+.doneByte
+    inc hl
     dec c
     jr nz,.flashBootstrapRomByte
 

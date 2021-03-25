@@ -45,7 +45,7 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
     ld [$5555],a;send the command seuence
 
     ld a,b
-    ld [hl+], a;and do the write
+    ld [hl], a;and do the write
     ret
 
 
