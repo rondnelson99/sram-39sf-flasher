@@ -14,3 +14,10 @@ lb: MACRO
 	assert -128 <= (\3) && (\3) <= 255, "Third argument to `lb` must be 8-bit!"
 	ld \1, ((\2) << 8) | (\3)
 ENDM
+
+MemsetSmall: MACRO
+.loop\@
+	ld [hl+], a
+	dec c
+	jr nz, .loop\@
+ENDM

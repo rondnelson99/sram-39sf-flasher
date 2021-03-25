@@ -2,10 +2,10 @@ INCLUDE "defines.asm"
 SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
 FlashBootstrapRom::;it should still be Vblank when this gets called
+    call ClearLowerScreen
     call InitProgressBar
-    ld hl, $9983
     ld de,.programString
-    call Strcpy
+    call StrcpyAboveProgressBar
 
     call ChipErase
 
@@ -31,17 +31,26 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     
     call Wait_Vblank
     
-    ld hl,$9983 ;above the progress bar
     ld de,.programFailedString
-    call Strcpy
+    call StrcpyAboveProgressBar
     ret
 
 .doneByte
     inc hl
     dec c
     jr nz,.flashBootstrapRomByte
-
+    ;if we make it here then we're done programming, but first let's update the progress bar.
+    call Wait_Vblank
+    ld a, $3D ;tile index of the filled bar
+    ld hl, $99C3; start of the bar
+    ld c, $99D1 - $99C3 ;length of the bar
+    MemsetSmall
+    ld de, .programDoneString
+    call StrcpyAboveProgressBar
     ret
+
+.programDoneString
+    db " PROGRAM DONE",$FF
 .programString
     db " PROGRAMMING  ",$FF;include spaces to cover the whole area
 

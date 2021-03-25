@@ -26,13 +26,13 @@ ChipErase::;send the chip-erase command sequence
     ; if the timeout has triggered, fall through
     
     call Wait_Vblank
-    ld hl,$9984 ;above the progress bar, one char to the right to make it centered
+
     ld de,.eraseFailedString
-    call Strcpy
+    call StrcpyAboveProgressBar
     pop de;pop off whatever program operation called the erase
     ret;return to the main loop
 .eraseFailedString
-    db "ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
+    db " ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
 
 FlashByteProgram::;write a to the flash, but don't do anything fancy like checking if it worked.
     ld b,a;we need a to send the command sequence so back it up at the expense of destroying b.
