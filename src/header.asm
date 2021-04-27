@@ -6,6 +6,11 @@ LOAD "RAM HEADER", SRAM[$A000]
 
 Start::
     di
+
+    ;SERIAL DEBUG
+    xor a
+    ldh [rSC],a
+
 .waitVBlank
     ld a, [rLY]
     cp a, 144

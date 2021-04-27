@@ -39,7 +39,7 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
     
     ld a,$AA;18 cycles, 15 bytes
     ld [$5555],a
-    ld a,$55
+    cpl ;ld a,$55
     ld [$2AAA],a
     ld a, $A0
     ld [$5555],a;send the command seuence

@@ -13,6 +13,12 @@ WaitAndHandleVblank::
     halt
 
 Handle_Vblank::
+	;SERIAL DEBUG STUFF
+
+	
+
+
+
 	ld c, LOW(rP1)
 	ld a, $20 ; Select D-pad
 	ldh [c], a
