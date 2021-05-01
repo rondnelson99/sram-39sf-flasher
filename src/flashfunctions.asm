@@ -32,7 +32,7 @@ ChipErase::;send the chip-erase command sequence
     pop de;pop off whatever program operation called the erase
     jp ResetTilemapAfterButtonPress
 .eraseFailedString
-    db " ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
+    db " ERASE FAILED ",$ff ;using ff-terminated strings so that null can be space.
 
 FlashByteProgram::;write a to the flash, but don't do anything fancy like checking if it worked.
     ld b,a;we need a to send the command sequence so back it up at the expense of destroying b.
@@ -44,8 +44,7 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
     ld a, $A0
     ld [$5555],a;send the command seuence
 
-    ld a,b
-    ld [hl], a;and do the write
+    ld [hl], b ;and do the write
     ret
 
 

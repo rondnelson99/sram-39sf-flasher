@@ -3,6 +3,8 @@ SECTION FRAGMENT "ROM CODE",ROM0
 LOAD FRAGMENT "RAM CODE",SRAM
 
 CopyRom:
+    call ChipErase
+
     lb bc, HIGH(wFlashBuffer1), 0
     ld d, c
     ld e, c ; ld de, 0
@@ -11,11 +13,7 @@ CopyRom:
 
 FlashROM0:
     push de ;pushed de holds the block number
-    ld d, h
-
     call LoadBlock
-
-    ld h, d
     pop de
 
 
@@ -23,18 +21,19 @@ FlashROM0:
     ld a, e
     cp $40 ; are we at the end of ROM0?
     jr nz, FlashROM0
-
+    ret
 
 
 
 
 LoadBlock:
+    ld d, 0 ;start a fresh checksum
 LoadByte:; simultaneously read a byte from serial into the loading buffer, and write a byte to the flash from the flashing buffer
     /*
     Registers:
     B - The high byte of the downloading buffer's location. Xor it with 1 to get the flashing buffer's location instead
-    C - The sum of the incoming bytes from Serial. This will be used to verify the block's integrity
-    D - The byte previously written to the flash. This is checked to see that the byte was written properly before writing the next one
+    C - The byte previously written to the flash. This is checked to see that the byte was written properly before writing the next one
+    D - The sum of the incoming bytes from Serial. This will be used to verify the block's integrity
     E - The high byte of the pointer to the ROM(flash) location being currently written to
     L - The low byte of all pointers. Also functions as the counter for the block.
     */
@@ -57,34 +56,33 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     
     ld [hl], a  ;actually write the byte
 
-    ld d,a ;store it to check later
+    ld c,a ;store it to check later
 
     ;Fetch a Byte
     ldh a, [rSB] ;get the byte previously sent by the arduino
     ld h, b ; hl now points to the fetch buffer
     ld [hl],a ; write to the buffer
 
-    add c
-    ld c, a
+    add d
+    ld d, a
 
     ;Request a Byte
-    ld a, c ;send out the checksum so far
+    ;ld a, d ;send out the checksum so far
     ldh [rSB], a
     ld a, $81 ;we're the master, and we're initiating a transfer
     ldh [rSC], a
     
     ld h, e ;point hl to the flash location
-    ld a, d ;get the previously written byte
+    ld a, c ;get the previously written byte
     cp [hl] ; check if the write has gone through yet
 
     ;that already took 20 cycles, so in single-speed mode, the byte should be done writing.
 
-    ;jr nz, .FlashFail
+    jp nz, FlashFail
 
     inc l ; move to the next byte of the 256 byte block
     jr nz, LoadByte
 
-    ld c, 0
 
     ld a, b
     xor $01
@@ -92,10 +90,15 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     
     ret
     
+FlashFail:
+    ld de, .transferFailedString
+    pop af ;pop off a return address
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+    ;this will return to the caller of CopyRom
 
-
-
-
+.transferFailedString
+    db " ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
 
 
 
