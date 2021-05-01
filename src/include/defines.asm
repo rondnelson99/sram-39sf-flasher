@@ -21,3 +21,12 @@ MemsetSmall: MACRO
 	dec c
 	jr nz, .loop\@
 ENDM
+
+rgb: MACRO
+    REPT _NARG / 3
+        dw (\1 & $1F) | ((\2 & $1F) << 5) | ((\3 & $1F) << 10)
+        SHIFT
+        SHIFT
+        SHIFT
+    ENDR
+ENDM

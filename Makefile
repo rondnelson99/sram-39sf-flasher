@@ -97,7 +97,7 @@ $(RESDIR)/%.gb: $(RESDIR)/%.asm
 	@$(MKDIR_P) $(@D)
 	$(RGBASM)  -o $(RESDIR)/$*.o $<
 	$(RGBLINK)  -x -o $@ $(RESDIR)/$*.o
-	$(RGBFIX)	-f lhg -i "BOOT" -j -k "RN" -m 0x09 -r 0x02 -t "FLASH BOOTSTRAP" $@
+	$(RGBFIX)	-C -f lhg -j -k "RN" -m 0x09 -r 0x02 -t "FLASH BOOTSTRAP" $@
 ###############################################
 #                                             #
 #                 COMPILATION                 #

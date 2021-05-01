@@ -1,6 +1,5 @@
 INCLUDE "defines.asm"
 
-
 SECTION "ROM HEADER", ROM0[0]
 LOAD "RAM HEADER", SRAM[$A000]
 
@@ -151,9 +150,21 @@ INCLUDE "res/main.tilemap.pb8.size"
     ld a, %00000001;vblank interrupt only
     ldh [rIE],a
 
-    ld a, %11100100
+
+    ld a, BCPSF_AUTOINC + 0
+    ldh [rBCPS], a
+    lb bc, 8, LOW(rBCPD) ;get ready to set BGP0
+    ld hl, BgPaletteData
+.paletteloop
+    ld a, [hl+]
+    ld [$ff00+c], a
+    dec b
+    jr nz, .paletteloop
+
+    ;old DMG palette code
+    /*ld a, %11100100
     ldh [rBGP], a
-    ldh [rOBP1],a
+    ldh [rOBP1],a*/
 
     xor a; ld a, 0
     ld [rSCY], a
@@ -172,7 +183,8 @@ Wait:
     jr Wait
 
 
-
+BgPaletteData:
+    rgb $1F,$1F,$1F, $0F,$1F,$06, $00,$0C,$18, $00,$00,$00
 
 FontTiles:
 INCBIN "res/font.1bpp.pb8"

@@ -57,7 +57,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     
     ld [hl], a  ;actually write the byte
 
-    ldh d,a ;store it to check later
+    ld d,a ;store it to check later
 
     ;Fetch a Byte
     ldh a, [rSB] ;get the byte previously sent by the arduino
@@ -79,7 +79,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
 
     ;that already took 20 cycles, so in single-speed mode, the byte should be done writing.
 
-    jr nz, .FlashFail
+    ;jr nz, .FlashFail
 
     inc l ; move to the next byte of the 256 byte block
     jr nz, LoadByte
@@ -100,7 +100,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
 
 
 ENDL
-SECTION "Flash Wram Buffers", WRAM0, ALIGN(9)
+SECTION "Flash Wram Buffers", WRAM0, ALIGN[9]
 wFlashBuffer1: ; these will alternate between storing validated data to be flashed and downloaded data to be verified
     ds 256
 wFlashBuffer2:
