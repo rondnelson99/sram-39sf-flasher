@@ -1,6 +1,4 @@
-INCLUDE "defines.asm"
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
+
 WaitVblank::
 	xor a
     ldh [rIF],a ;wait for Vblank to update the progress bar
@@ -69,7 +67,10 @@ ENDR
     ldh [rIF],a ;IF needs to be manually cleared after a 'di halt'
 
     ret
-ENDL
+
+PUSHS
+
+
 SECTION "VBlank HRAM", HRAM
     ; Keys that are currently being held, and that became held just this frame, respectively.
     ; Each bit represents a button, with that bit set == button pressed
@@ -78,3 +79,4 @@ SECTION "VBlank HRAM", HRAM
 hHeldKeys:: db
 hPressedKeys:: db
     
+POPS

@@ -1,5 +1,3 @@
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
 Multiple_Strcpy::;copy C destination prefixed strings from de
     ld a, [de]
     inc de
@@ -24,5 +22,3 @@ Strcpy:: ;copy an FF-terminated string from de to hl
 
     ld [hl+], a
     jr Strcpy
-
-ENDL

@@ -1,7 +1,7 @@
 INCLUDE "defines.asm"
 
-SECTION "ROM HEADER", ROM0[0]
-LOAD "RAM HEADER", SRAM[$A000]
+SECTION "ROM", ROM0[0]
+LOAD "RAM", SRAM[$A000]
 
 Start::
     di
@@ -184,7 +184,7 @@ Wait:
 
 
 BgPaletteData:
-    rgb $1F,$1F,$1F, $0F,$1F,$06, $00,$0C,$18, $00,$00,$00
+    rgb $1F,$1F,$1F, $0F,$1F,$06, $00,$0C,$18, $00,$00,$00 ;equivalent to the default white, green, blue, black in back-compat mode
 
 FontTiles:
 INCBIN "res/font.1bpp.pb8"
@@ -199,7 +199,9 @@ SSTTIlesEnd:
 MainTilemap::
 INCBIN "res/main.tilemap.pb8"
 TilemapEnd:
-ENDL
+
+PUSHS
+
 SECTION "HRAM misc vars", HRAM
 
 hBackupA: db
@@ -208,4 +210,15 @@ SECTION "Stack", WRAM0[$E000 - STACK_SIZE]
 
 	ds STACK_SIZE
 wStackBottom:
-    
+
+POPS
+
+INCLUDE "vblank.asm"
+INCLUDE "memutils.asm"
+INCLUDE "gfxfunctions.asm"
+INCLUDE "flashfunctions.asm"
+INCLUDE "transfer_from_computer.asm"
+INCLUDE "unPB8.asm"
+INCLUDE "write_bootstrapper.asm"
+
+ENDL

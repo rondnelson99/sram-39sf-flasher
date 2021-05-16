@@ -1,6 +1,3 @@
-INCLUDE "defines.asm"
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
 
 CopyRom:
     call ChipErase
@@ -78,7 +75,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
 
     ;that already took 20 cycles, so in single-speed mode, the byte should be done writing.
 
-    jp nz, FlashFail
+    jr nz, FlashFail
 
     inc l ; move to the next byte of the 256 byte block
     jr nz, LoadByte
@@ -101,10 +98,13 @@ FlashFail:
     db " ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
 
 
+PUSHS
 
-ENDL
+    
 SECTION "Flash Wram Buffers", WRAM0, ALIGN[9]
 wFlashBuffer1: ; these will alternate between storing validated data to be flashed and downloaded data to be verified
     ds 256
 wFlashBuffer2:
     ds 256
+
+POPS

@@ -1,6 +1,4 @@
-INCLUDE "defines.asm"
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
+
 FlashBootstrapRom::;it should still be Vblank when this gets called
     call ClearLowerScreen
     call InitProgressBar
@@ -61,4 +59,3 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
 BootstrapRom:
 INCBIN "res/bootstrapRom.gb",$100;a little bootstrap rom. Start with the header
 BootstrapRomEnd:
-ENDL

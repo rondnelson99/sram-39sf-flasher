@@ -1,6 +1,3 @@
-INCLUDE "defines.asm"
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
 
 InitProgressBar::
     ld de, $99C2 ;left edge of progress bar
@@ -55,5 +52,4 @@ LowerStrings::
     dw $99E3
     db "B:EXIT TO ROM",$FF
 
-ENDL
 

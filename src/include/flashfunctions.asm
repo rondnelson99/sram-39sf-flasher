@@ -1,6 +1,4 @@
-INCLUDE "defines.asm"
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
+
 ChipErase::;send the chip-erase command sequence
     ld hl,$5555 ;chip-erase command sequence
     ld de,$2AAA
@@ -46,6 +44,3 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
 
     ld [hl], b ;and do the write
     ret
-
-
-ENDL

@@ -1,5 +1,4 @@
-SECTION FRAGMENT "ROM CODE",ROM0
-LOAD FRAGMENT "RAM CODE",SRAM
+
 UnPB8::
 .pb8BlockLoop
     ;unpack c blocks from hl to de. 8 byte blocks
@@ -25,4 +24,4 @@ UnPB8::
     dec c
     jr nz, .pb8BlockLoop
     ret
-ENDL
+
