@@ -11,9 +11,6 @@ WaitAndHandleVblank::
     halt
 
 Handle_Vblank::
-	;SERIAL DEBUG STUFF
-
-	
 
 
 
@@ -59,7 +56,7 @@ ENDR
 	ldh a, [hHeldKeys]
 	cpl
 	and b
-	ldh [hPressedKeys], a
+	ldh [hPressedKeys], a ; In format dulrSsba
 	ld a, b
 	ldh [hHeldKeys], a
 

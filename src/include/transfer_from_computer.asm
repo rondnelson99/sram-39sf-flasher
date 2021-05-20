@@ -1,6 +1,14 @@
 
-CopyRom:
+CopyRom::
     call ChipErase
+    
+    ld a, 42; Special token to start a transfer with computer
+    ldh [rSB], a
+    ld a, $81 ;we're the master, and we're initiating a transfer
+    ldh [rSC], a
+
+    ds 32,0 ;nop for 32 cycles
+
 
     lb bc, HIGH(wFlashBuffer1), 0
     ld d, c
@@ -16,7 +24,7 @@ FlashROM0:
 
     inc e ; advance to the next block
     ld a, e
-    cp $40 ; are we at the end of ROM0?
+    cp $80 ; are we at the end of ROM0?
     jr nz, FlashROM0
     ret
 
@@ -80,7 +88,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     inc l ; move to the next byte of the 256 byte block
     jr nz, LoadByte
 
-
+    ;Finishing The Block
     ld a, b
     xor $01
     ld b, a; switch the buffers around

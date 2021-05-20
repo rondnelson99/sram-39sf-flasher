@@ -17,7 +17,7 @@ TITLE := BOILERPLATE
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!
-LICENSEE := HB
+LICENSEE := RN
 # Old licensee, please set to 0x33 (required to get SGB compatibility)
 OLDLIC := 0x33
 
@@ -34,8 +34,8 @@ MBC := 0x00
 SRAMSIZE := 0x00
 
 # ROM name
-ROMNAME := boilerplate
-ROMEXT  := sav
+ROMNAME := link_flasher
+ROMEXT  := gb
 
 
 # Compilation parameters, uncomment to apply, comment to cancel
@@ -51,16 +51,18 @@ ROMEXT  := sav
 # Game Boy Color compatible
 # FIXFLAGS += -c
 # Game Boy Color required
-# FIXFLAGS += -C
+FIXFLAGS += -C
 
 # Super Game Boy compatible
 # FIXFLAGS += -s
 
 # Game Boy mode
 LDFLAGS += -d
-LDFLAGS += -x
+
 # No banked WRAM mode
 # LDFLAGS += -w
 
 # 32k mode
-# LDFLAGS += -t
+LDFLAGS += -t
+#don't pad for reduced flash time + 28C16 compatibility
+LDFLAGS += -x

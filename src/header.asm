@@ -1,7 +1,43 @@
 INCLUDE "defines.asm"
 
-SECTION "ROM", ROM0[0]
-LOAD "RAM", SRAM[$A000]
+SECTION "Header", ROM0[$100]
+
+	; This is your ROM's entry point
+	; You have 4 bytes of code to do... something
+	di
+	jp EntryPoint
+
+	; Make sure to allocate some space for the header, so no important
+	; code gets put there and later overwritten by RGBFIX.
+	; RGBFIX is designed to operate over a zero-filled header, so make
+	; sure to put zeros regardless of the padding value. (This feature
+	; was introduced in RGBDS 0.4.0, but the -MG etc flags were also
+	; introduced in that version.)
+	ds $150 - @, 0
+
+SECTION "Entry point", ROM0
+
+EntryPoint:
+	; Here is where the fun begins, happy coding :)
+CopyToRam:
+    ld de, STARTOF("ROM")
+    ld hl, $C000
+    ld bc, SIZEOF("RAM")
+.loop
+    ld a, [de]
+    inc de
+    ld [hl+], a
+    dec bc
+    ld a, b
+    or c
+    jr nz, .loop
+    jp $C000
+
+  
+
+
+SECTION "ROM", ROM0
+LOAD "RAM", WRAM0[$C000]
 
 Start::
     di
@@ -180,6 +216,10 @@ Wait:
     bit 2,a;select button
     call nz,FlashBootstrapRom
     
+    ldh a,[hPressedKeys]
+    bit 0,a;A button
+    call nz,CopyRom
+
     jr Wait
 
 
