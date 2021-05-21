@@ -1,6 +1,6 @@
 
 CopyRom::
-    call ChipErase
+    call SectorErase
     
     ld a, 42; Special token to start a transfer with computer
     ldh [rSB], a

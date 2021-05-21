@@ -1,5 +1,5 @@
 
-ChipErase::;send the chip-erase command sequence
+SectorErase::;send the sector-erase command sequence
     ld hl,$5555 ;chip-erase command sequence
     ld de,$2AAA
     ld [hl],e;[$5555]<-$AA
@@ -8,7 +8,8 @@ ChipErase::;send the chip-erase command sequence
     ld [hl], $80;[$5555]<-$80
     ld [hl],e;[$5555]<-$AA
     ld [de],a;[$2AAA]<-$55
-    ld [hl], $10;[$5555]<-$10
+    ld a, $30;[$5555]<-$30
+    ld [$0000],a ;erase the first sector
     ;very efficient, but clobbers everything except BC
 
     ld de,10000; timeout for the erase. I think this is above the max chip-erase time.

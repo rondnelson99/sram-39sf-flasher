@@ -5,7 +5,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld de,.programString
     call StrcpyAboveProgressBar
 
-    call ChipErase
+    call SectorErase
 
     call WaitAndHandleVblank
     ld a, $3E ;tile number for filled in proress bar
