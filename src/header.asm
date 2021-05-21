@@ -1,13 +1,18 @@
 INCLUDE "defines.asm"
 
+CODE_LOCATION equ $C000
 SECTION "ROM", ROM0[0]
+LOAD "RAM", WRAM0[CODE_LOCATION]
+    ;This starting bit is stupidly jank. It's meant to be run from ROM, but needs to still get loaded into RAM so that it can be flashed later. 
+    ;It only works like this because the copy routine contains no jp or call and doesn't use any labels, so it doesn't matter what @ is.
 
     ds $100 ;get to the header
 
 	; This is your ROM's entry point
 	; You have 4 bytes of code to do... something
 	di
-	jp EntryPoint
+    nop
+	jr EntryPoint
 
 	; Make sure to allocate some space for the header, so no important
 	; code gets put there and later overwritten by RGBFIX.
@@ -15,14 +20,15 @@ SECTION "ROM", ROM0[0]
 	; sure to put zeros regardless of the padding value. (This feature
 	; was introduced in RGBDS 0.4.0, but the -MG etc flags were also
 	; introduced in that version.)
-	ds $150 - @, 0
+	ds CODE_LOCATION + $150 - @, 0
 
 
 EntryPoint:
 	; Here is where the fun begins, happy coding :)
 CopyToRam:
-    ld hl, $C000
-    ASSERT STARTOF("ROM") == $0000
+    ld hl, CODE_LOCATION
+    ASSERT LOW(CODE_LOCATION) == 0
+    ;ASSERT STARTOF("ROM") == $0000
     ld d, l
     ld e, l;ld de, STARTOF("ROM")
     ld bc, 2048 ; copy the 2KB program
@@ -36,9 +42,8 @@ CopyToRam:
     jr nz, .loop
     jp Start
 
-ASSERT SIZEOF("ROM") == $163
-SECTION "ROM2", ROM0
-LOAD "RAM", WRAM0[$C000+$163]
+
+; now this code will actually be run from RAM
 
 Start::
     di
