@@ -26,12 +26,12 @@ ENDR
 	; Filter impossible D-pad combinations
 	and $0C ; Filter only Down and Up
 	ld a, b
-	jp nz, .notUpAndDown
+	jr nz, .notUpAndDown
 	or $0C ; If both are pressed, "unpress" them
 	ld b, a
 .notUpAndDown
 	and $03 ; Filter only Left and Right
-	jp nz, .notLeftAndRight
+	jr nz, .notLeftAndRight
 	; If both are pressed, "unpress" them
 	inc b;this will set the bottom 2 bits of B if they were 0.
 	inc b

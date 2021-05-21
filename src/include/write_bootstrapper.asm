@@ -12,7 +12,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld [$99C3],a;fill in the first bit of the bar to show that the erase has completed
 
     ld de, BootstrapRom
-    ld hl, $100 ;area to be flashed
+    ld hl, $0000 ;area to be flashed
     ld c, BootstrapRomEnd-BootstrapRom
 .flashBootstrapRomByte
     ld a, [de]
@@ -22,7 +22,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld b, 3;give it a little time to fully program
 .checkprogramloop
     cp [hl]
-    jp z,.doneByte
+    jr z,.doneByte
     dec b
     jr nz, .checkprogramloop
     ;fall through if b runs out

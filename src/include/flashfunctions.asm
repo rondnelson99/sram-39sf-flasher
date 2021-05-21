@@ -28,7 +28,7 @@ ChipErase::;send the chip-erase command sequence
     ld de,.eraseFailedString
     call StrcpyAboveProgressBar
     pop de;pop off whatever program operation called the erase
-    jp ResetTilemapAfterButtonPress
+    jr ResetTilemapAfterButtonPress
 .eraseFailedString
     db " ERASE FAILED ",$ff ;using ff-terminated strings so that null can be space.
 
