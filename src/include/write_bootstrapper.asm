@@ -11,9 +11,10 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld a, $3E ;tile number for filled in proress bar
     ld [$99C3],a;fill in the first bit of the bar to show that the erase has completed
 
-    ld de, BootstrapRom
-    ld hl, $0000 ;area to be flashed
-    ld c, BootstrapRomEnd-BootstrapRom
+    ;ASSERT STARTOF("RAM") == $C000
+    ld de, $C000;STARTOF("RAM") ;copy the entire 2KB program that is currently in RAM to the Flash
+    ld h,e ;ld hl, $0000 ;area to be flashed
+    ld l,e
 .flashBootstrapRomByte
     ld a, [de]
     inc de
@@ -35,8 +36,8 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
 
 .doneByte
     inc hl
-    dec c
-    jr nz,.flashBootstrapRomByte
+    bit 3, h; this will be set after 2KB has been copied
+    jr z,.flashBootstrapRomByte
     ;if we make it here then we're done programming, but first let's update the progress bar.
     call WaitAndHandleVblank
     ld a, $3E ;tile index of the filled bar
@@ -56,6 +57,6 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
 
 .programFailedString
     db "PROGRAM FAILED",$FF
-BootstrapRom:
+/*BootstrapRom:
 INCBIN "res/bootstrapRom.gb",$100;a little bootstrap rom. Start with the header
-BootstrapRomEnd:
+BootstrapRomEnd:*/

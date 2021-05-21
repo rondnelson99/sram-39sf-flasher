@@ -1,6 +1,8 @@
 INCLUDE "defines.asm"
 
-SECTION "Header", ROM0[$100]
+SECTION "ROM", ROM0[0]
+
+    ds $100 ;get to the header
 
 	; This is your ROM's entry point
 	; You have 4 bytes of code to do... something
@@ -15,14 +17,15 @@ SECTION "Header", ROM0[$100]
 	; introduced in that version.)
 	ds $150 - @, 0
 
-SECTION "Entry point", ROM0
 
 EntryPoint:
 	; Here is where the fun begins, happy coding :)
 CopyToRam:
-    ld de, STARTOF("ROM")
     ld hl, $C000
-    ld bc, SIZEOF("RAM")
+    ASSERT STARTOF("ROM") == $0000
+    ld d, l
+    ld e, l;ld de, STARTOF("ROM")
+    ld bc, 2048 ; copy the 2KB program
 .loop
     ld a, [de]
     inc de
@@ -31,13 +34,11 @@ CopyToRam:
     ld a, b
     or c
     jr nz, .loop
-    jp $C000
+    jp Start
 
-  
-
-
-SECTION "ROM", ROM0
-LOAD "RAM", WRAM0[$C000]
+ASSERT SIZEOF("ROM") == $163
+SECTION "ROM2", ROM0
+LOAD "RAM", WRAM0[$C000+$163]
 
 Start::
     di
