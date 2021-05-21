@@ -1,6 +1,6 @@
 
 SectorErase::;send the sector-erase command sequence
-    ld hl,$5555 ;chip-erase command sequence
+    ld hl,$5555 ;sector-erase command sequence
     ld de,$2AAA
     ld [hl],e;[$5555]<-$AA
     ld a,l
@@ -26,12 +26,11 @@ SectorErase::;send the sector-erase command sequence
     
     call WaitAndHandleVblank
 
-    ld de,.eraseFailedString
+    ld de,EraseFailedString
     call StrcpyAboveProgressBar
     pop de;pop off whatever program operation called the erase
     jr ResetTilemapAfterButtonPress
-.eraseFailedString
-    db " ERASE FAILED ",$ff ;using ff-terminated strings so that null can be space.
+
 
 FlashByteProgram::;write a to the flash, but don't do anything fancy like checking if it worked.
     ld b,a;we need a to send the command sequence so back it up at the expense of destroying b.
@@ -46,3 +45,13 @@ FlashByteProgram::;write a to the flash, but don't do anything fancy like checki
     ld [hl], b ;and do the write
     ld a, b
     ret
+
+EraseFailedString:
+    db " ERASE FAILED ",$ff ;using ff-terminated strings so that null can be space.
+ProgramDoneString:
+    db " PROGRAM DONE ",$FF
+ProgramString:
+    db " PROGRAMMING  ",$FF;include spaces to cover the whole area
+
+ProgramFailedString:
+    db "PROGRAM FAILED",$FF

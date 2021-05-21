@@ -2,7 +2,7 @@
 FlashBootstrapRom::;it should still be Vblank when this gets called
     call ClearLowerScreen
     call InitProgressBar
-    ld de,.programString
+    ld de, ProgramString
     call StrcpyAboveProgressBar
 
     call SectorErase
@@ -30,7 +30,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     
     call WaitAndHandleVblank
     
-    ld de,.programFailedString
+    ld de, ProgramFailedString
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
 
@@ -44,19 +44,13 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld hl, $99C3; start of the bar
     ld c, $99D1 - $99C3 ;length of the bar
     MemsetSmall
-    ld de, .programDoneString
+    ld de, ProgramDoneString
     call StrcpyAboveProgressBar
     
     jp ResetTilemapAfterButtonPress
     ;that function rets for us, so we don't have to.
 
-.programDoneString
-    db " PROGRAM DONE",$FF
-.programString
-    db " PROGRAMMING  ",$FF;include spaces to cover the whole area
 
-.programFailedString
-    db "PROGRAM FAILED",$FF
 /*BootstrapRom:
 INCBIN "res/bootstrapRom.gb",$100;a little bootstrap rom. Start with the header
 BootstrapRomEnd:*/

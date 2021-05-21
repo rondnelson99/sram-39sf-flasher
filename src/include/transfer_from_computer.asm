@@ -1,12 +1,12 @@
 
 CopyRom::
-    call SectorErase
+    ;call SectorErase
     
     ld a, 42; Special token to start a transfer with computer
     ldh [rSB], a
-    ld a, $81 ;we're the master, and we're initiating a transfer
+    ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
-
+    
     ds 32,0 ;nop for 32 cycles
 
 
@@ -74,7 +74,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     ;Request a Byte
     ;ld a, d ;send out the checksum so far
     ldh [rSB], a
-    ld a, $81 ;we're the master, and we're initiating a transfer
+    ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
     
     ld h, e ;point hl to the flash location
@@ -96,14 +96,13 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     ret
     
 FlashFail:
-    ld de, .transferFailedString
+    ld de, ProgramFailedString
     pop af ;pop off a return address
+
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
     ;this will return to the caller of CopyRom
 
-.transferFailedString
-    db " ERASE FAILED",$ff ;using ff-terminated strings so that null can be space.
 
 
 PUSHS
