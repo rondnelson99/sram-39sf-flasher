@@ -4,19 +4,19 @@ CopyRom::
     
     ld a, 42; Special token to start a transfer with computer
     ldh [rSB], a
-    ld a, $81 ;we're the master, and we're initiating a fast transfer
+    ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
-    
-    xor a
-.loop
-    dec a
-    jr nz, .loop
 
     lb bc, HIGH(wFlashBuffer1), 0
     ld d, c
     ld e, c ; ld de, 0
     ld h, c ; 
     ld l, c ; ld hl, 0
+
+.waitTransferCompletion
+    ldh a, [rSC]
+    rlca ;shift bit 7 (transfer in progress flag) into carry
+    jr c, .waitTransferCompletion    
     
     ldh a,[rSB]
     ld [wFlashBuffer1] , a
@@ -79,13 +79,10 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     ;Request a Byte
     ;ld a, d ;send out the checksum so far
     ldh [rSB], a
-    ld a, $81 ;we're the master, and we're initiating a fast transfer
+    ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
 
-    xor a
-.loop
-    dec a
-    jr nz, .loop
+
     
     ld h, e ;point hl to the flash location
     ld a, c ;get the previously written byte
