@@ -1,20 +1,25 @@
 
 CopyRom::
-    ;call SectorErase
+    call SectorErase
     
     ld a, 42; Special token to start a transfer with computer
     ldh [rSB], a
-    ld a, $83 ;we're the master, and we're initiating a fast transfer
+    ld a, $81 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
     
-    ds 32,0 ;nop for 32 cycles
-
+    xor a
+.loop
+    dec a
+    jr nz, .loop
 
     lb bc, HIGH(wFlashBuffer1), 0
     ld d, c
     ld e, c ; ld de, 0
     ld h, c ; 
     ld l, c ; ld hl, 0
+    
+    ldh a,[rSB]
+    ld [wFlashBuffer1] , a
 
 FlashROM0:
     push de ;pushed de holds the block number
@@ -24,7 +29,7 @@ FlashROM0:
 
     inc e ; advance to the next block
     ld a, e
-    cp $80 ; are we at the end of ROM0?
+    cp $02 ; are we at the end of ROM0?
     jr nz, FlashROM0
     ret
 
@@ -74,8 +79,13 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     ;Request a Byte
     ;ld a, d ;send out the checksum so far
     ldh [rSB], a
-    ld a, $83 ;we're the master, and we're initiating a fast transfer
+    ld a, $81 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
+
+    xor a
+.loop
+    dec a
+    jr nz, .loop
     
     ld h, e ;point hl to the flash location
     ld a, c ;get the previously written byte
@@ -97,8 +107,9 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     
 FlashFail:
     ld de, ProgramFailedString
-    pop af ;pop off a return address
-
+    
+    add sp, 4 ;pop off the stacked block number as well as 1 return address
+    call WaitVblank
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
     ;this will return to the caller of CopyRom
