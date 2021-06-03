@@ -1,8 +1,15 @@
+START_TOKEN = 42;sent by the GB
+RECIEVED_TOKEN = 43;recieved by the gb 2nd
+INIT_TOKEN = 44;sent by the GB 2nd
 
-CopyRom::
+
+
+CopyRom:: ; this needs to be called during Vblank
+    call ClearLowerScreen
     call SectorErase
-    
-    ld a, 42; Special token to start a transfer with computer
+   
+
+    ld a, START_TOKEN; Special token to start a transfer with computer
     ldh [rSB], a
     ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
@@ -10,26 +17,54 @@ CopyRom::
     lb bc, HIGH(wFlashBuffer1), 0
     ld d, c
     ld e, c ; ld de, 0
-    ld h, c ; 
-    ld l, c ; ld hl, 0
+    ld hl, wFlashBuffer2
 
-.waitTransferCompletion
-    ldh a, [rSC]
-    rlca ;shift bit 7 (transfer in progress flag) into carry
-    jr c, .waitTransferCompletion    
+    call WaitTransferCompletion    
+
+CheckReply:
+    ld a, INIT_TOKEN
     
-    ldh a,[rSB]
-    ld [wFlashBuffer1] , a
+    call TransferAndWait
+    
+    ldh a, [rSB]
+    cp RECIEVED_TOKEN 
+    jr nz, ConnectFail
 
+    
+LoadFirstPage:;since the main copy routine flashes and downloads at the same time, we need to fetch the first 256 bytes ahead of time.
+    /*
+    Registers:
+    D - The sum of the incoming bytes from Serial. This will be used to verify the block's integrity
+    HL - The destination buffer of this copy
+    */
+    ld a, d ; d should be 0 when this starts
+    
+    call TransferAndWait
+
+    ldh a, [rSB]
+    ld [hl], a
+
+    add d
+    ld d, a
+
+    inc l
+    jr nz, LoadFirstPage
+
+PrepareFirstTransferOfBlock:
+    ld a, d ; d should be 0 when this starts
+    
+    call TransferAndWait
+
+    ld d, 0
 FlashROM0:
     push de ;pushed de holds the block number
     call LoadBlock
     pop de
 
-
+    
     inc e ; advance to the next block
     ld a, e
-    cp $02 ; are we at the end of ROM0?
+    cp $08 ; are we at the end of ROM0?
     jr nz, FlashROM0
     ret
 
@@ -111,8 +146,14 @@ FlashFail:
     jp ResetTilemapAfterButtonPress
     ;this will return to the caller of CopyRom
 
+ConnectFail:
+    ld de, NoConnectionString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
 
-
+NoConnectionString:
+    db "NO CONNECTION ", $FF
 PUSHS
 
     

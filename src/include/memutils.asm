@@ -22,3 +22,14 @@ Strcpy:: ;copy an FF-terminated string from de to hl
 
     ld [hl+], a
     jr Strcpy
+
+TransferAndWait:: ;transfer a to Serial, then wait for the exchange to finish
+    ldh [rSB], a
+    ld a, $83;we're the master, initiate a fast transfer
+    ldh [rSC], a
+
+WaitTransferCompletion:: ;wait for the current Serial transfer to finish
+    ldh a, [rSC]
+    rlca ;shift bit 7 (transfer in progress flag) into carry
+    jr c, WaitTransferCompletion 
+    ret
