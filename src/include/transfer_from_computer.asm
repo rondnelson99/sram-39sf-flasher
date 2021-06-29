@@ -1,15 +1,15 @@
-START_TOKEN = 42;sent by the GB
+INIT_TOKEN = 42;sent by the GB
 RECIEVED_TOKEN = 43;recieved by the gb 2nd
-INIT_TOKEN = 44;sent by the GB 2nd
+START_TOKEN = 44;sent by the GB 2nd
+WAIT_TOKEN = 45;sent by the computer instead of RECIEVED_TOKEN when it needs more time to download stuff from the computer.
 
 
 
 CopyRom:: ; this needs to be called during Vblank
     call ClearLowerScreen
     call SectorErase
-   
 
-    ld a, START_TOKEN; Special token to start a transfer with computer
+    ld a, INIT_TOKEN; Special token to start a transfer with computer
     ldh [rSB], a
     ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
@@ -22,11 +22,13 @@ CopyRom:: ; this needs to be called during Vblank
     call WaitTransferCompletion    
 
 CheckReply:
-    ld a, INIT_TOKEN
+    ld a, START_TOKEN
     
     call TransferAndWait
     
     ldh a, [rSB]
+    cp WAIT_TOKEN
+    jr z, NoRomFail
     cp RECIEVED_TOKEN 
     jr nz, ConnectFail
 
@@ -51,7 +53,7 @@ LoadFirstPage:;since the main copy routine flashes and downloads at the same tim
     jr nz, LoadFirstPage
 
 PrepareFirstTransferOfBlock:
-    ld a, d ; d should be 0 when this starts
+    ld a, d ;the main flashing routine starts with grabbing the byte out of rSB, so it needs the byte to already be transferd in
     
     call TransferAndWait
 
@@ -69,10 +71,74 @@ FlashROM0:
     ret
 
 
+ConnectFail:
+    ld de, NoConnectionString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+
+NoConnectionString:
+    db "NO CONNECTION ", $FF
+
+NoRomFail:
+    ld de, SendRomFirstString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+    
+SendRomFirstString:
+    db "SEND ROM FIRST", $FF
+
+
+WaitFailPop: ;when run during the flash loop we have to pop a couple times to prevent a stack overflow
+    add sp, 4 ;pop off the stacked block number as well as 1 return address 
+WaitFail:
+    ld de, PacketTimeoutString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+
+PacketTimeoutString:
+    db "PACKET TIMEOUT", $FF
+
+
+
 
 
 LoadBlock:
-    ld d, 0 ;start a fresh checksum
+    call WaitTransferCompletion
+
+    ld h, 0 ;ld hl, 0
+.checkBlockReady
+    ld a, INIT_TOKEN; Special token to start a transfer with computer
+    ldh [rSB], a
+    ld a, $83 ;we're the master, and we're initiating a fast transfer
+    ldh [rSC], a
+
+
+    call WaitTransferCompletion    
+
+.checkReply:
+    ld a, START_TOKEN
+    
+    call TransferAndWait
+    
+    ldh a, [rSB]
+    cp WAIT_TOKEN
+    jr nz, .nonWaitReply
+
+    dec hl ;decrement our counter
+    ld a, h
+    or l
+    jr z, .checkBlockReady
+
+.nonWaitReply
+    cp RECIEVED_TOKEN 
+    jr nz, ConnectFail
+
+    ld d, l ;l is 0, start a fresh checksum
+
+
 LoadByte:; simultaneously read a byte from serial into the loading buffer, and write a byte to the flash from the flashing buffer
     /*
     Registers:
@@ -137,6 +203,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     
     ret
     
+    
 FlashFail:
     ld de, ProgramFailedString
     
@@ -146,14 +213,7 @@ FlashFail:
     jp ResetTilemapAfterButtonPress
     ;this will return to the caller of CopyRom
 
-ConnectFail:
-    ld de, NoConnectionString
-    call WaitVblank
-    call StrcpyAboveProgressBar
-    jp ResetTilemapAfterButtonPress
 
-NoConnectionString:
-    db "NO CONNECTION ", $FF
 PUSHS
 
     
