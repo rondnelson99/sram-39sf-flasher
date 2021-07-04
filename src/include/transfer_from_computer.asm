@@ -181,6 +181,7 @@ LoadBlock:
     cp RECIEVED_TOKEN 
     jr nz, BadPacketStartFailPop
 
+    ld l, 0 ;start with the first byte
     ld d, l ;l is 0, start a fresh checksum
 
 PrepareFirstTransferOfBlock:
