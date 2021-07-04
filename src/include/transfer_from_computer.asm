@@ -52,10 +52,7 @@ LoadFirstPage:;since the main copy routine flashes and downloads at the same tim
     inc l
     jr nz, LoadFirstPage
 
-PrepareFirstTransferOfBlock:
-    ld a, d ;the main flashing routine starts with grabbing the byte out of rSB, so it needs the byte to already be transferd in
-    
-    call TransferAndWait
+
 
     ld d, 0
 FlashROM0:
@@ -71,14 +68,7 @@ FlashROM0:
     ret
 
 
-ConnectFail:
-    ld de, NoConnectionString
-    call WaitVblank
-    call StrcpyAboveProgressBar
-    jp ResetTilemapAfterButtonPress
 
-NoConnectionString:
-    db "NO CONNECTION ", $FF
 
 NoRomFail:
     ld de, SendRomFirstString
@@ -101,12 +91,34 @@ WaitFail:
 PacketTimeoutString:
     db "PACKET TIMEOUT", $FF
 
+ConnectFail:
+    ld de, NoConnectionString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+
+NoConnectionString:
+    db "NO CONNECTION ", $FF
+
 
 
 
 
 LoadBlock:
     call WaitTransferCompletion
+
+.bigDelay
+    ld hl, 0
+.loop
+    dec hl
+    push hl
+    pop hl
+    push hl
+    pop hl
+    ld a, h
+    or l
+    jr nz, .loop
+
 
     ld h, 0 ;ld hl, 0
 .checkBlockReady
@@ -129,14 +141,22 @@ LoadBlock:
 
     dec hl ;decrement our counter
     ld a, h
-    or l
-    jr z, .checkBlockReady
+    or l ;is it zero?
+    jr nz, .checkBlockReady
+    ; I think this counter reaching zero indicates that we've been waiting on the arduino for like 1 or 2 seconds.
+    ;time to error out
+    jr WaitFailPop
 
-.nonWaitReply
+
+.nonWaitReply ;it's not telling us to wait. Either we're good to go or there's a connection issue
     cp RECIEVED_TOKEN 
     jr nz, ConnectFail
 
     ld d, l ;l is 0, start a fresh checksum
+
+PrepareFirstTransferOfBlock:
+
+    call TransferAndWait ;the main flashing routine starts with grabbing the byte out of rSB, so it needs the byte to already be transferd
 
 
 LoadByte:; simultaneously read a byte from serial into the loading buffer, and write a byte to the flash from the flashing buffer
