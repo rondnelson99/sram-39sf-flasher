@@ -136,17 +136,7 @@ FlashFail:
 LoadBlock:
     call WaitTransferCompletion
 
-.bigDelay
-    ld hl, 0
-.loop
-    dec hl
-    push hl
-    pop hl
-    push hl
-    pop hl
-    ld a, h
-    or l
-    jr nz, .loop
+
 
 
     ld h, 0 ;ld hl, 0
