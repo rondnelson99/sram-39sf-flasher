@@ -63,11 +63,43 @@ FlashROM0:
     
     inc e ; advance to the next block
     ld a, e
-    cp $08 ; are we at the end of ROM0?
+    cp $07 ; are we one page away from the end of ROM0?
     jr nz, FlashROM0
+
+FlashLastPage:
+    ld a, b ;this is the pointer to the downloading buffer
+    xor $01 ;but this makes it the flashing buffer
+    ld d, a
+
+    ld h, e ; this is the rom location we're flashing to
+    ld e, l ; this is zero, we'll use it as the low byte of the pointer to the downloading buffer
+
+    
+
+.lastPageByte
+    ld a, [de]; grab the byte to flash
+    
+    call FlashByteProgram ;write the byte
+    
+    inc e ;this won't overflow
+
+    ld c, 3 ;number of times to check if the write goes through before quitting. This shouldn't take long.
+
+.waitProgramCompletion
+    cp [hl] ;has the write gone through?
+    jr z, .writeSuccessful
+
+    dec c
+
+    jr nz, .waitProgramCompletion
+
+    jr FlashFail
+
+.writeSuccessful
+    inc l
+    jr nz, .lastPageByte
+
     ret
-
-
 
 
 NoRomFail:
@@ -75,9 +107,6 @@ NoRomFail:
     call WaitVblank
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
-    
-SendRomFirstString:
-    db "SEND ROM FIRST", $FF
 
 
 WaitFailPop: ;when run during the flash loop we have to pop a couple times to prevent a stack overflow
@@ -88,8 +117,6 @@ WaitFail:
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
 
-PacketTimeoutString:
-    db "PACKET TIMEOUT", $FF
 
 ConnectFail:
     ld de, NoConnectionString
@@ -97,12 +124,14 @@ ConnectFail:
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
 
-NoConnectionString:
-    db "NO CONNECTION ", $FF
-
-
-
-
+FlashFailPop:
+    add sp, 4 ;pop off the stacked block number as well as 1 return address
+FlashFail:
+    ld de, ProgramFailedString
+    call WaitVblank
+    call StrcpyAboveProgressBar
+    jp ResetTilemapAfterButtonPress
+    ;this will return to the caller of CopyRom
 
 LoadBlock:
     call WaitTransferCompletion
@@ -150,7 +179,7 @@ LoadBlock:
 
 .nonWaitReply ;it's not telling us to wait. Either we're good to go or there's a connection issue
     cp RECIEVED_TOKEN 
-    jr nz, ConnectFail
+    jr nz, BadPacketStartFailPop
 
     ld d, l ;l is 0, start a fresh checksum
 
@@ -211,7 +240,7 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
 
     ;that already took 20 cycles, so in single-speed mode, the byte should be done writing.
 
-    jr nz, FlashFail
+    jr nz, FlashFailPop
 
     inc l ; move to the next byte of the 256 byte block
     jr nz, LoadByte
@@ -224,15 +253,26 @@ LoadByte:; simultaneously read a byte from serial into the loading buffer, and w
     ret
     
     
-FlashFail:
-    ld de, ProgramFailedString
-    
-    add sp, 4 ;pop off the stacked block number as well as 1 return address
+
+BadPacketStartFailPop:
+    add sp, 4 ;pop off the stacked block number as well as 1 return address 
+BadPacketStartFail:
+    ld de, PacketTimeoutString
     call WaitVblank
     call StrcpyAboveProgressBar
     jp ResetTilemapAfterButtonPress
-    ;this will return to the caller of CopyRom
 
+BadPacketHeaderString:
+    db "BAD PKT HEADER", $FF
+
+PacketTimeoutString:
+    db "PACKET TIMEOUT", $FF
+
+NoConnectionString:
+    db "NO CONNECTION ", $FF
+
+SendRomFirstString:
+    db "SEND ROM FIRST", $FF
 
 PUSHS
 

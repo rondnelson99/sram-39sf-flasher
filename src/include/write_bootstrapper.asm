@@ -51,6 +51,3 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ;that function rets for us, so we don't have to.
 
 
-/*BootstrapRom:
-INCBIN "res/bootstrapRom.gb",$100;a little bootstrap rom. Start with the header
-BootstrapRomEnd:*/

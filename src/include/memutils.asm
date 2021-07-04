@@ -8,6 +8,7 @@ Multiple_Strcpy::;copy C destination prefixed strings from de
     call Strcpy
     dec c
     jr nz, Multiple_Strcpy
+UnconditionalRet:: ;this can be called in order to efficiently delay
     ret
 
 StrcpyAboveProgressBar::
