@@ -9,12 +9,12 @@ SectorErase::;send the sector-erase command sequence
     ld [hl],e;[$5555]<-$AA
     ld [de],a;[$2AAA]<-$55
     ld a, $30;[$5555]<-$30
-    ld [$0000],a ;erase the first sector
+    ld [bc],a ;erase the sector indicated by the top 4 bits of b
     ;very efficient, but clobbers everything except BC
 
     ld de,10000; timeout for the erase. I think this is above the max chip-erase time.
 .checkEraseCompletion
-    ld a, [$100]; this is in rom, so we can use it for Data Polling
+    ld a, [bc]; this is in the flashed area of rom, so we can use it for Data Polling
     ;if the erase has finished, this should be $FF.
     inc a ;so this would set the z flag
     ret z

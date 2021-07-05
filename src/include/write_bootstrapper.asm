@@ -5,6 +5,7 @@ FlashBootstrapRom::;it should still be Vblank when this gets called
     ld de, ProgramString
     call StrcpyAboveProgressBar
 
+    ld b, 0 ;erase sector 0
     call SectorErase
 
     call WaitAndHandleVblank

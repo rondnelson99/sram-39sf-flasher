@@ -7,7 +7,17 @@ WAIT_TOKEN = 45;sent by the computer instead of RECIEVED_TOKEN when it needs mor
 
 CopyRom:: ; this needs to be called during Vblank
     call ClearLowerScreen
+
+EraseRom:
+    xor a
+.loop
+    ld b, a
     call SectorErase
+    ld a, b
+    add $10 ;move on to the next sector
+    cp $80 ;have we erased 32KB?
+    jr nz, .loop
+
 
     ld a, INIT_TOKEN; Special token to start a transfer with computer
     ldh [rSB], a
@@ -63,7 +73,7 @@ FlashROM0:
     
     inc e ; advance to the next block
     ld a, e
-    cp $07 ; are we one page away from the end of ROM0?
+    cp $7F ; are we one page away from the end of ROM0?
     jr nz, FlashROM0
 
 FlashLastPage:
