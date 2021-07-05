@@ -64,5 +64,4 @@ LDFLAGS += -d
 
 # 32k mode
 LDFLAGS += -t
-# don't pad for reduced flash time + 28C16 compatibility
-LDFLAGS += -x
+

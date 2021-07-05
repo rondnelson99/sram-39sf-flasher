@@ -123,6 +123,12 @@ rebuild:
 	$(MAKE) all
 .PHONY: rebuild
 
+upload:
+	$(MAKE) all
+	stty -F /dev/ttyS4 500000 cs8 -cstopb -parenb -opost -ixoff
+	sx bin/$(ROM) < /dev/ttyS4 > /dev/ttyS4
+.PHONY: upload
+
 # How to build a ROM
 $(BINDIR)/%.$(ROMEXT) $(BINDIR)/%.sym $(BINDIR)/%.map: $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(SRCS))
 	@$(MKDIR_P) $(@D)
