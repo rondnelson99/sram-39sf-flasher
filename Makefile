@@ -126,7 +126,7 @@ rebuild:
 upload:
 	$(MAKE) all
 	stty -F /dev/ttyS4 500000 cs8 -cstopb -parenb -opost -ixoff
-	sx bin/$(ROM) < /dev/ttyS4 > /dev/ttyS4
+	sx $(ROM) < /dev/ttyS4 > /dev/ttyS4
 .PHONY: upload
 
 # How to build a ROM

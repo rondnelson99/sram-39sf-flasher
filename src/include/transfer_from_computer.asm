@@ -8,26 +8,13 @@ WAIT_TOKEN = 45;sent by the computer instead of RECIEVED_TOKEN when it needs mor
 CopyRom:: ; this needs to be called during Vblank
     call ClearLowerScreen
 
-EraseRom:
-    xor a
-.loop
-    ld b, a
-    call SectorErase
-    ld a, b
-    add $10 ;move on to the next sector
-    cp $80 ;have we erased 32KB?
-    jr nz, .loop
-
 
     ld a, INIT_TOKEN; Special token to start a transfer with computer
     ldh [rSB], a
     ld a, $83 ;we're the master, and we're initiating a fast transfer
     ldh [rSC], a
 
-    lb bc, HIGH(wFlashBuffer1), 0
-    ld d, c
-    ld e, c ; ld de, 0
-    ld hl, wFlashBuffer2
+
 
     call WaitTransferCompletion    
 
@@ -42,6 +29,20 @@ CheckReply:
     cp RECIEVED_TOKEN 
     jr nz, ConnectFail
 
+EraseRom:
+    xor a
+.loop
+    ld b, a
+    call SectorErase
+    ld a, b
+    add $10 ;move on to the next sector
+    cp $80 ;have we erased 32KB?
+    jr nz, .loop
+
+    lb bc, HIGH(wFlashBuffer1), 0
+    ld d, c
+    ld e, c ; ld de, 0
+    ld hl, wFlashBuffer2
     
 LoadFirstPage:;since the main copy routine flashes and downloads at the same time, we need to fetch the first 256 bytes ahead of time.
     /*
@@ -109,14 +110,15 @@ FlashLastPage:
     inc l
     jr nz, .lastPageByte
 
-    ret
+    ;now jump over to our shiny new rom!
+    jp $0100
 
 
 NoRomFail:
-    ld de, SendRomFirstString
+    ld de, WaitingOnRomString
     call WaitVblank
     call StrcpyAboveProgressBar
-    jp ResetTilemapAfterButtonPress
+    jp ResetTilemap ;don't wait for the button press this time
 
 
 WaitFailPop: ;when run during the flash loop we have to pop a couple times to prevent a stack overflow
@@ -132,7 +134,7 @@ ConnectFail:
     ld de, NoConnectionString
     call WaitVblank
     call StrcpyAboveProgressBar
-    jp ResetTilemapAfterButtonPress
+    jp ResetTilemap ;don't wait for the button press this time
 
 FlashFailPop:
     add sp, 4 ;pop off the stacked block number as well as 1 return address
@@ -272,8 +274,8 @@ PacketTimeoutString:
 NoConnectionString:
     db "NO CONNECTION ", $FF
 
-SendRomFirstString:
-    db "SEND ROM FIRST", $FF
+WaitingOnRomString:
+    db "WAITING ON ROM", $FF
 
 PUSHS
 

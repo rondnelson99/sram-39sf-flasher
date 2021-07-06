@@ -1,8 +1,8 @@
 INCLUDE "defines.asm"
 
 CODE_LOCATION equ $C000
-SECTION "ROM", ROM0[0]
-LOAD "RAM", WRAM0[CODE_LOCATION]
+SECTION "ROM copy routine", ROM0[0]
+
     ;This starting bit is stupidly jank. It's meant to be run from ROM, but needs to still get loaded into RAM so that it can be flashed later. 
     ;It only works like this because the copy routine contains no jp or call and doesn't use any labels, so it doesn't matter what @ is.
 
@@ -20,7 +20,9 @@ LOAD "RAM", WRAM0[CODE_LOCATION]
 	; sure to put zeros regardless of the padding value. (This feature
 	; was introduced in RGBDS 0.4.0, but the -MG etc flags were also
 	; introduced in that version.)
-	ds CODE_LOCATION + $150 - @, 0
+	ds $150 - @, 0
+
+
 
 
 EntryPoint:
@@ -42,7 +44,13 @@ CopyToRam:
     jr nz, .loop
     jp Start
 
+SECTION "RAM copy routine", WRAM0[CODE_LOCATION]
+    ;reserve space for the previous rom copy routine
+    ds SIZEOF("ROM copy routine")
 
+SECTION "ROM Main Code", ROM0 ;since it's the only other section, this will be placed immediately after the ROM copy routine
+LOAD "RAM", WRAM0[CODE_LOCATION + SIZEOF("ROM copy routine")]
+  
 ; now this code will actually be run from RAM
 
 Start::
@@ -222,9 +230,10 @@ Wait:
     bit 2,a;select button
     call nz,FlashBootstrapRom
     
-    ldh a,[hPressedKeys]
-    bit 0,a;A button
-    call nz,CopyRom
+    /*ldh a,[hPressedKeys]
+    rrca ;shift bit 0 (a button) into carry
+    call c, CopyRom ; copy a rom if it's being sent*/
+    call CopyRom
 
     jr Wait
 
